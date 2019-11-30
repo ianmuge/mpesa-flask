@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}Transactions{% endblock %}
+{% block header %}Transactions{% endblock %}
+{% block content %}
+    <div class="row">
+        <table class="table">
+            <thead>
+            <th>ID</th>
+            <th>Time</th>
+            <th>Amount</th>
+            <th>Bill Ref.</th>
+            <th>MSISDN</th>
+            <th>Name</th>
+            <th>Validation</th>
+            <th>Confirmation</th>
+            <th>Timestamp</th>
+            </thead>
+            {{ pagination.links }}
+            {% for tr in transactions %}
+                <tr>
+                    <td>{{ tr["TransID"] }}</td>
+                    <td>{{ tr["TransTime"] }}</td>
+                    <td>{{ tr["TransAmount"] }}</td>
+                    <td>{{ tr["BillRefNumber"] }}</td>
+                    <td>{{ tr["MSISDN"] }}</td>
+                    <td>{{ tr["FirstName"] }} {{ tr["MiddleName"] }} {{ tr["LastName"] }}</td>
+                    <td>{{ tr["validated"] }} on {{ tr["validation_timestamp"] }}</td>
+                    <td>{{ tr["confirmed"] }} on {{ tr["confirmation_timestamp"] }}</td>
+                    <td>{{ tr["timestamp"] }}</td>
+                </tr>
+            {% else %}
+                <h3>No transactions available!</h3>
+            {% endfor %}
+        </table>
+        {{ pagination.links }}
+        <div class="container ">
+            <div class="row">
+                <div class="col"></div>
+                <div class="col">{{ pagination.links }}</div>
+                <div class="col"></div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+{% block script %}
+    <script>
+        $(document).ready(function(){
+
+        });
+    </script>
+{% endblock %}

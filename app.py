@@ -1,73 +1,36 @@
-from flask import Flask
+from flask import *
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 import cfg
-import requests
-from requests.auth import HTTPBasicAuth
-import random
-from faker import Faker
+from flask.cli import with_appcontext
+from click import command, echo
+import os
+
+
 
 app = Flask(__name__)
-fake = Faker()
+app.config['SQLALCHEMY_DATABASE_URI'] =cfg.MYSQL_DB_RESOURCE
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] =False
+app.config['SECRET_KEY'] = cfg.SECRET_KEY
 
-def authenticate():
-    if cfg.ENV == "production":
-        base_safaricom_url = cfg.LIVE_URL
-    else:
-        base_safaricom_url = cfg.SANDBOX_URL
-    authenticate_uri = "/oauth/v1/generate?grant_type=client_credentials"
-    authenticate_url = "{0}{1}".format(base_safaricom_url, authenticate_uri)
-    r = requests.get(authenticate_url,auth=HTTPBasicAuth(cfg.CONSUMER_KEY, cfg.CONSUMER_SECRET))
-    token = r.json()['access_token']
-    return token
 
-@app.route('/register')
-def register():
-    """This method uses Mpesa's C2B API to register validation and confirmation URLs on M-Pesa.
-   **Returns:**
-       - OriginatorConversationID (str): The unique request ID for tracking a transaction.
-       - ConversationID (str): The unique request ID returned by mpesa for each request made
-       - ResponseDescription (str): Response Description message
-"""
-    payload = {
-        "ShortCode": cfg.SHORTCODE,
-        "ResponseType": cfg.RESPONSE_TYPE,
-        "ConfirmationURL": cfg.CONFIRMATION_URL,
-        "ValidationURL": cfg.VALIDATION_URL
-    }
-    headers = {'Authorization': 'Bearer {0}'.format(authenticate()), 'Content-Type': "application/json"}
-    if cfg.ENV == "production":
-        base_safaricom_url = cfg.LIVE_URL
-    else:
-        base_safaricom_url = cfg.SANDBOX_URL
-    saf_url = "{0}{1}".format(base_safaricom_url, "/mpesa/c2b/v1/registerurl")
-    r = requests.post(saf_url, headers=headers, json=payload)
-    return r.json()
-@app.route('/confirmation')
-def confirm():
-    return 'Hello World!'
-@app.route('/validation')
-def validate():
-    return 'Hello World!'
-@app.route('/simulate')
-def simulate():
-    payload = {
-        "ShortCode": cfg.SHORTCODE,
-        "CommandID": "CustomerPayBillOnline", #CustomerPayBillOnline|CustomerBuyGoodsOnline
-        "Amount": 5,
-        "Msisdn": cfg.TEST_MSISDN,
-        "BillRefNumber": fake.text(max_nb_chars=10)
-    }
-    headers = {'Authorization': 'Bearer {0}'.format(authenticate()), 'Content-Type': "application/json"}
-    if cfg.ENV == "production":
-        base_safaricom_url = cfg.LIVE_URL
-    else:
-        base_safaricom_url = cfg.SANDBOX_URL
-    saf_url = "{0}{1}".format(base_safaricom_url, "/mpesa/c2b/v1/simulate")
-    r = requests.post(saf_url, headers=headers, json=payload)
-    return r.json()
-@app.route('/reverse')
-def reverse():
-    return 'Hello World!'
+db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
+from models import *
+from routes import *
+
+@command("init-db")
+@with_appcontext
+def init_db_command():
+    """Initialize the database."""
+    db.session.flush()
+    if os.path.exists(cfg.DB_FILE):
+        os.remove(cfg.DB_FILE)
+        print("Database Removed")
+    db.create_all()
+    echo("Initialized the database.")
+app.cli.add_command(init_db_command)
 
 if __name__ == '__main__':
     app.run()
