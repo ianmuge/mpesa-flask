@@ -1,0 +1,18 @@
+SECRET_KEY='super-secret'
+DB_FILE="./mpesa.db"
+MYSQL_DB_RESOURCE='sqlite:///'+DB_FILE
+
+ENV="sandbox"
+LIVE_URL="https://safaricom.co.ke"
+SANDBOX_URL="https://sandbox.safaricom.co.ke"
+SHORTCODE="600357"
+CONSUMER_KEY=""
+CONSUMER_SECRET=""
+RESPONSE_TYPE="Complete" #Complete or Cancel
+BASE_URL="" #"http://8dc80cc9.ngrok.io"
+CONFIRMATION_URL=BASE_URL+"/confirmation"
+VALIDATION_URL=BASE_URL+"/validation"
+INITIATOR="testapi0357"
+SECURITY_CREDENTIAL="Safcom357!"
+INITIATOR_SECURITY_CREDENTIAL=""
+TEST_MSISDN="254708374149"
